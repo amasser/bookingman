@@ -1,6 +1,5 @@
 
 
-
 CREATE TABLE `user` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '用户id',
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT '用户姓名',
@@ -98,12 +97,35 @@ CREATE TABLE `node` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- todo 分库分表 by hash
 CREATE TABLE `file_index` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '文件id',
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT '文件名',
   `hash` varchar(32) NOT NULL DEFAULT '' COMMENT '文件哈希',
-  `nodeId` int(11) NOT NULL DEFAULT '0' COMMENT '所在节点名',
+  `nodeId` int(11) NOT NULL DEFAULT '0' COMMENT '所在节点名 第一副本所在节点',
+  `nodeId2` int(11) NOT NULL DEFAULT '0' COMMENT '所在节点名 第二副本所在节点',
+  `nodeId3` int(11) NOT NULL DEFAULT '0' COMMENT '所在节点名 第三副本所在节点',
   `path` varchar(256) NOT NULL DEFAULT '' COMMENT '文件文件',
+  `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '创建时间',
+  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 0=未就绪 1=就绪 98=上传失败 99=删除',
+  `referCount` int(11) NOT NULL DEFAULT '0' COMMENT '被引用数量',
+  `size` int(11) NOT NULL DEFAULT '0' COMMENT '大小 单位Byte',
+  `space` int(11) NOT NULL DEFAULT '0' COMMENT '占用空间单位 单位KB',
+  `desc` text NOT NULL COMMENT '描述信息',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- todo 分库分表 by uid
+CREATE TABLE `user_file` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '文件id',
+  `user_id` varchar(32) NOT NULL DEFAULT '' COMMENT '文件名',
+  `fileHash` varchar(32) NOT NULL DEFAULT '' COMMENT '文件哈希',
+  `path` varchar(256) NOT NULL DEFAULT '' COMMENT '文件路径',
+  `fileName` varchar(256) NOT NULL DEFAULT '' COMMENT '文件名',
+  `nodeId` int(11) NOT NULL DEFAULT '0' COMMENT '所在节点名 第一副本所在节点',
+  `path` varchar(256) NOT NULL DEFAULT '' COMMENT '文件文件',
+  `isDir` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否是目录',
   `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '创建时间',
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1=正常 2=隐藏 99=下架',
@@ -115,16 +137,15 @@ CREATE TABLE `file_index` (
 
 CREATE TABLE `share` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '文件id',
-  `name` varchar(32) NOT NULL DEFAULT '' COMMENT '文件名',
-  `hash` varchar(32) NOT NULL DEFAULT '' COMMENT '文件哈希',
+  `fileHash` varchar(32) NOT NULL DEFAULT '' COMMENT '文件哈希',
+  `userId` int(11) NOT NULL DEFAULT '0' COMMENT '分享者用户id',
   `nodeId` int(11) NOT NULL DEFAULT '0' COMMENT '所在节点名',
+  `name` varchar(32) NOT NULL DEFAULT '' COMMENT '文件名',
   `path` varchar(256) NOT NULL DEFAULT '' COMMENT '文件文件',
   `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '创建时间',
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1=正常 2=隐藏 99=下架',
-  `size` int(11) NOT NULL DEFAULT '0' COMMENT '大小 单位Byte',
-  `space` int(11) NOT NULL DEFAULT '0' COMMENT '占用空间单位 单位KB',
-  `desc` text NOT NULL COMMENT '描述信息',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1=正常 2=隐藏 99=已删除',
+  `expired` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '分享有效期',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
